@@ -1,0 +1,70 @@
+*** Settings ***
+Library           Mobile.py
+Library           Mobile.ADB    YT910YGM2G
+Library           Mobile.ATX
+
+*** Test Cases ***
+Type empty password
+    Initial
+    Open SealNote
+    BuiltIn.Sleep    1s
+    Mobile.Click    resourceId=com.twistedplane.sealnote:id/password_action_button
+
+Test Degress Of Password
+    Initial
+    Open SealNote
+    BuiltIn.Sleep    1s
+    Type Password    1234
+    Degree Of Password Should Be    Weak
+    Type Password    12345
+    Degree Of Password Should Be    So-so
+    Type Password    0989
+    Degree Of Password Should Be    Good
+    Type Password    123456
+    Degree Of Password Should Be    Strong
+    Mobile.ADB.shell_cmd    am force-stop com.twistedplane.sealnote
+
+Test Credit Card
+    Comment    Open Sealnote
+    Comment    Type Password    1234
+    Comment    Mobile.Click    com.twistedplane.sealnote:id/password_action_button
+    Mobile.ATX.ClickImage    newNote.png
+    Mobile.ATX.ClickImage    CardDetails.png
+    BuiltIn.Sleep    1s
+    Type Credit Card Number    4716152906495672
+    press_back
+    Comment    Mobile.clear_text    resourceId=com.twistedplane.sealnote:id/note_card_number
+    BuiltIn.Sleep    2s
+    ${boolean}    Mobile.ATX.assertImage    VISA.png
+    BuiltIn.Should Be True    ${boolean}
+    press_delete
+
+Clean
+    Comment    Clean SealNote Data
+    Mobile.ATX.ClickImage    note.png
+    Comment    Mobile.ATX.click_By_String    Create a New Note
+
+*** Keywords ***
+Open SealNote
+    Initial
+    Mobile.ADB.shell_cmd    am start -n com.twistedplane.sealnote/.SealnoteActivity
+
+Initial
+    set_serial    YT910YGM2G
+
+Clean SealNote Data
+    Mobile.ADB.shell_cmd    pm clear com.twistedplane.sealnote
+
+Type Password
+    [Arguments]    ${password}
+    Mobile.set_text    ${password}    resourceId=com.twistedplane.sealnote:id/password_meter_input
+
+Degree Of Password Should Be
+    [Arguments]    ${degree}
+    ${text}    Mobile.Get Object    resourceId=com.twistedplane.sealnote:id/password_meter_text
+    ${title}    Mobile.Get Info Of Object    ${text}
+    BuiltIn.Should Be Equal    ${title['text']}    ${degree}
+
+Type Credit Card Number
+    [Arguments]    ${number}
+    Mobile.set_text    ${number}    resourceId=com.twistedplane.sealnote:id/note_card_number
